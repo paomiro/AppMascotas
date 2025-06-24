@@ -152,6 +152,10 @@ struct PetDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
+                    Button("Compartir") {
+                        // Share functionality will be implemented
+                    }
+                    
                     Button("Editar") {
                         showingEditPet = true
                     }

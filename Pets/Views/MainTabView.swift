@@ -32,6 +32,13 @@ struct MainTabView: View {
                     Image(systemName: "syringe")
                     Text("Vacunas")
                 }
+            
+            SettingsView()
+                .environmentObject(petStore)
+                .tabItem {
+                    Image(systemName: "gear")
+                    Text("Configuración")
+                }
         }
         .accentColor(.blue)
     }

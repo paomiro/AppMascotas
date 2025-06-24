@@ -1,0 +1,14 @@
+com/pets/api/model/Pet.class
+com/pets/api/model/Vaccination.class
+com/pets/api/dto/PetDTO.class
+com/pets/api/repository/PostRepository.class
+com/pets/api/controller/PetController.class
+com/pets/api/model/Post.class
+com/pets/api/repository/EventRepository.class
+com/pets/api/PetsApiApplication.class
+com/pets/api/repository/PetRepository.class
+com/pets/api/model/EventType.class
+com/pets/api/model/PetSpecies.class
+com/pets/api/controller/PostController.class
+com/pets/api/model/Event.class
+com/pets/api/repository/VaccinationRepository.class

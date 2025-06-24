@@ -16,9 +16,22 @@ class PetStore: ObservableObject {
     private let newsKey = "SavedNews"
     private let postsKey = "SavedPosts"
     
+    // iOS Integration Managers
+    private let notificationManager = NotificationManager.shared
+    private let healthKitManager = HealthKitManager.shared
+    
     init() {
         loadData()
         loadSampleData()
+        setupIOSIntegration()
+    }
+    
+    private func setupIOSIntegration() {
+        // Request notification permissions
+        notificationManager.requestPermission()
+        
+        // Request HealthKit permissions
+        healthKitManager.requestAuthorization()
     }
     
     // MARK: - Pet Management
@@ -54,18 +67,32 @@ class PetStore: ObservableObject {
     func addEvent(_ event: Event) {
         events.append(event)
         saveData()
+        
+        // Schedule iOS notification for the event
+        if let pet = pets.first(where: { $0.id == event.petId }) {
+            notificationManager.scheduleEventReminder(for: event, pet: pet)
+        }
     }
     
     func updateEvent(_ event: Event) {
         if let index = events.firstIndex(where: { $0.id == event.id }) {
             events[index] = event
             saveData()
+            
+            // Update iOS notification
+            notificationManager.cancelNotification(with: "event-\(event.id)")
+            if let pet = pets.first(where: { $0.id == event.petId }) {
+                notificationManager.scheduleEventReminder(for: event, pet: pet)
+            }
         }
     }
     
     func deleteEvent(_ event: Event) {
         events.removeAll { $0.id == event.id }
         saveData()
+        
+        // Cancel iOS notification
+        notificationManager.cancelNotification(with: "event-\(event.id)")
     }
     
     func getEventsForPet(_ petId: UUID) -> [Event] {
@@ -83,18 +110,32 @@ class PetStore: ObservableObject {
         }
         vaccinations[petId]?.append(vaccination)
         saveData()
+        
+        // Schedule iOS notification for vaccination reminder
+        if let pet = pets.first(where: { $0.id == petId }) {
+            notificationManager.scheduleVaccinationReminder(for: vaccination, pet: pet)
+        }
     }
     
     func updateVaccination(_ vaccination: Vaccination, for petId: UUID) {
         if let index = vaccinations[petId]?.firstIndex(where: { $0.id == vaccination.id }) {
             vaccinations[petId]?[index] = vaccination
             saveData()
+            
+            // Update iOS notification
+            notificationManager.cancelNotification(with: "vaccination-\(vaccination.id)")
+            if let pet = pets.first(where: { $0.id == petId }) {
+                notificationManager.scheduleVaccinationReminder(for: vaccination, pet: pet)
+            }
         }
     }
     
     func deleteVaccination(_ vaccination: Vaccination, for petId: UUID) {
         vaccinations[petId]?.removeAll { $0.id == vaccination.id }
         saveData()
+        
+        // Cancel iOS notification
+        notificationManager.cancelNotification(with: "vaccination-\(vaccination.id)")
     }
     
     func getVaccinationsForPet(_ petId: UUID) -> [Vaccination] {
@@ -110,6 +151,23 @@ class PetStore: ObservableObject {
             }
         }
         return overdue
+    }
+    
+    // MARK: - iOS HealthKit Integration
+    func savePetActivity(petId: UUID, steps: Int, date: Date = Date()) {
+        healthKitManager.savePetActivity(petId: petId, steps: steps, date: date)
+    }
+    
+    func getPetActivity(for date: Date = Date()) -> Int {
+        return healthKitManager.getPetActivity(for: date)
+    }
+    
+    // MARK: - iOS Widget Support
+    func getWidgetData(for petId: UUID) -> (Pet, [Event], [Vaccination])? {
+        guard let pet = pets.first(where: { $0.id == petId }) else { return nil }
+        let petEvents = getEventsForPet(petId).filter { $0.isUpcoming }.prefix(3).map { $0 }
+        let petVaccinations = getVaccinationsForPet(petId).filter { $0.isOverdue }
+        return (pet, Array(petEvents), petVaccinations)
     }
     
     // MARK: - News Management

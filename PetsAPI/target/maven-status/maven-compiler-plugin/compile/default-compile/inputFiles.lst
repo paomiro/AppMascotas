@@ -1,0 +1,14 @@
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/controller/PostController.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/controller/PetController.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/repository/EventRepository.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/PetsApiApplication.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/model/EventType.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/model/PetSpecies.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/repository/VaccinationRepository.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/model/Post.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/model/Event.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/repository/PostRepository.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/dto/PetDTO.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/model/Pet.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/model/Vaccination.java
+/Users/paola/Documents/PetsAPI/src/main/java/com/pets/api/repository/PetRepository.java
