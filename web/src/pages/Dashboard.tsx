@@ -27,28 +27,28 @@ const Dashboard: React.FC = () => {
       title: 'Mascotas',
       value: pets.length,
       icon: Heart,
-      color: 'blue',
+      color: 'blue' as const,
       href: '/pets'
     },
     {
       title: 'Próximos Eventos',
       value: upcomingEvents,
       icon: Calendar,
-      color: 'green',
+      color: 'green' as const,
       href: '/calendar'
     },
     {
       title: 'Vacunas Vencidas',
       value: overdueVaccinations,
       icon: Shield,
-      color: 'red',
+      color: 'red' as const,
       href: '/vaccinations'
     },
     {
       title: 'Posts',
       value: postsResponse?.posts.length || 0,
       icon: ImageIcon,
-      color: 'purple',
+      color: 'purple' as const,
       href: '/posts'
     }
   ];

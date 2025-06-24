@@ -3,6 +3,8 @@ import UserNotifications
 import SwiftUI
 
 class NotificationManager: ObservableObject {
+    var objectWillChange: ObservableObjectPublisher
+    
     static let shared = NotificationManager()
     
     private init() {}
