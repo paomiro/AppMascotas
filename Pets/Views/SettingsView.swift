@@ -83,6 +83,35 @@ struct SettingsView: View {
                     .foregroundColor(.red)
                 }
                 
+                Section(header: Text("API y Servidor")) {
+                    NavigationLink(destination: APITestView()) {
+                        HStack {
+                            Image(systemName: "network")
+                                .foregroundColor(.blue)
+                            Text("Pruebas de API")
+                        }
+                    }
+                    
+                    HStack {
+                        Image(systemName: "server.rack")
+                            .foregroundColor(.blue)
+                        Text("Servidor")
+                        Spacer()
+                        Text(APIConfig.currentEnvironment == .development ? "Desarrollo" : "Producción")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "wifi")
+                            .foregroundColor(.blue)
+                        Text("URL del Servidor")
+                        Spacer()
+                        Text(APIConfig.baseURL)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 Section(header: Text("Acerca de")) {
                     HStack {
                         Image(systemName: "info.circle")

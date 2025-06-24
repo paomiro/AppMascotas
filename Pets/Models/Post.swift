@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct Post: Identifiable, Codable {
-    let id = UUID()
+    var id = UUID()
     var petId: UUID
     var petName: String
     var petImageData: Data?
@@ -26,6 +26,16 @@ struct Post: Identifiable, Codable {
     
     var likeCount: Int {
         return likes.count
+    }
+    
+    // Custom initializer for API integration
+    init(petId: UUID, imageData: Data? = nil, createdAt: Date = Date(), likedBy: [UUID] = []) {
+        self.petId = petId
+        self.imageData = imageData
+        self.createdAt = createdAt
+        self.likes = likedBy
+        self.petName = "" // Will be set when needed
+        self.petImageData = nil // Will be set when needed
     }
 }
 

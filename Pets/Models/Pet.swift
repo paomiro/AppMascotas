@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct Pet: Identifiable, Codable {
-    let id = UUID()
+    var id = UUID()
     var name: String
     var species: PetSpecies
     var breed: String
@@ -30,6 +30,22 @@ struct Pet: Identifiable, Codable {
             return UIImage(data: imageData)
         }
         return nil
+    }
+    
+    // Custom initializer for API integration
+    init(name: String, species: PetSpecies, breed: String, birthDate: Date, weight: Double, color: String, microchipNumber: String? = nil, photoURL: String? = nil, imageData: Data? = nil, ownerName: String, ownerPhone: String, ownerEmail: String) {
+        self.name = name
+        self.species = species
+        self.breed = breed
+        self.birthDate = birthDate
+        self.weight = weight
+        self.color = color
+        self.microchipNumber = microchipNumber
+        self.photoURL = photoURL
+        self.imageData = imageData
+        self.ownerName = ownerName
+        self.ownerPhone = ownerPhone
+        self.ownerEmail = ownerEmail
     }
 }
 

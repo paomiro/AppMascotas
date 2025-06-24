@@ -9,12 +9,17 @@ class PetStore: ObservableObject {
     @Published var news: [News] = []
     @Published var posts: [Post] = []
     @Published var selectedPet: Pet?
+    @Published var isLoading = false
+    @Published var errorMessage: String?
     
     private let petsKey = "SavedPets"
     private let eventsKey = "SavedEvents"
     private let vaccinationsKey = "SavedVaccinations"
     private let newsKey = "SavedNews"
     private let postsKey = "SavedPosts"
+    
+    // API Service
+    let apiService = APIService.shared
     
     // iOS Integration Managers
     private let notificationManager = NotificationManager.shared
@@ -24,6 +29,12 @@ class PetStore: ObservableObject {
         loadData()
         loadSampleData()
         setupIOSIntegration()
+        
+        // Load data from API
+        Task {
+            await loadPetsFromAPI()
+            await loadPostsFromAPI()
+        }
     }
     
     private func setupIOSIntegration() {
@@ -34,17 +45,57 @@ class PetStore: ObservableObject {
         healthKitManager.requestAuthorization()
     }
     
+    // MARK: - API Integration
+    
+    @MainActor
+    func loadPetsFromAPI() async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let apiPets = try await apiService.fetchPets()
+            self.pets = apiPets
+            saveData() // Save to local storage as backup
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Error loading pets from API: \(error)")
+        }
+        
+        isLoading = false
+    }
+    
+    @MainActor
+    func loadPostsFromAPI() async {
+        do {
+            let apiPosts = try await apiService.fetchPosts()
+            self.posts = apiPosts
+            saveData() // Save to local storage as backup
+        } catch {
+            print("Error loading posts from API: \(error)")
+        }
+    }
+    
     // MARK: - Pet Management
     func addPet(_ pet: Pet) {
         pets.append(pet)
         vaccinations[pet.id] = []
         saveData()
+        
+        // Sync with API
+        Task {
+            await syncPetToAPI(pet)
+        }
     }
     
     func updatePet(_ pet: Pet) {
         if let index = pets.firstIndex(where: { $0.id == pet.id }) {
             pets[index] = pet
             saveData()
+            
+            // Sync with API
+            Task {
+                await updatePetInAPI(pet)
+            }
         }
     }
     
@@ -53,6 +104,11 @@ class PetStore: ObservableObject {
         events.removeAll { $0.petId == pet.id }
         vaccinations.removeValue(forKey: pet.id)
         saveData()
+        
+        // Sync with API
+        Task {
+            await deletePetFromAPI(pet.id)
+        }
     }
     
     func updatePetImage(_ pet: Pet, image: UIImage) {
@@ -61,6 +117,60 @@ class PetStore: ObservableObject {
         var updatedPet = pet
         updatedPet.imageData = imageData
         updatePet(updatedPet)
+        
+        // Upload image to API
+        Task {
+            await uploadPetImageToAPI(petId: pet.id, imageData: imageData)
+        }
+    }
+    
+    // MARK: - API Sync Methods
+    
+    private func syncPetToAPI(_ pet: Pet) async {
+        do {
+            let createdPet = try await apiService.createPet(pet)
+            // Update local pet with server ID if needed
+            if let index = pets.firstIndex(where: { $0.id == pet.id }) {
+                await MainActor.run {
+                    pets[index].id = createdPet.id
+                    saveData()
+                }
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = "Error syncing pet to server: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func updatePetInAPI(_ pet: Pet) async {
+        do {
+            _ = try await apiService.updatePet(pet)
+        } catch {
+            await MainActor.run {
+                errorMessage = "Error updating pet on server: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func deletePetFromAPI(_ petId: UUID) async {
+        do {
+            try await apiService.deletePet(id: petId)
+        } catch {
+            await MainActor.run {
+                errorMessage = "Error deleting pet from server: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func uploadPetImageToAPI(petId: UUID, imageData: Data) async {
+        do {
+            try await apiService.uploadPetImage(petId: petId, imageData: imageData)
+        } catch {
+            await MainActor.run {
+                errorMessage = "Error uploading pet image: \(error.localizedDescription)"
+            }
+        }
     }
     
     // MARK: - Event Management
@@ -204,6 +314,11 @@ class PetStore: ObservableObject {
     func addPost(_ post: Post) {
         posts.append(post)
         saveData()
+        
+        // Sync with API
+        Task {
+            await syncPostToAPI(post)
+        }
     }
     
     func updatePost(_ post: Post) {
@@ -216,6 +331,11 @@ class PetStore: ObservableObject {
     func deletePost(_ post: Post) {
         posts.removeAll { $0.id == post.id }
         saveData()
+        
+        // Sync with API
+        Task {
+            await deletePostFromAPI(post.id)
+        }
     }
     
     func likePost(_ post: Post, by petId: UUID) {
@@ -234,6 +354,37 @@ class PetStore: ObservableObject {
     
     func getAllPosts() -> [Post] {
         return posts.sorted { $0.createdAt > $1.createdAt }
+    }
+    
+    // MARK: - Posts API Integration
+    
+    private func syncPostToAPI(_ post: Post) async {
+        guard let imageData = post.imageData else { return }
+        
+        do {
+            let createdPost = try await apiService.createPost(petId: post.petId, imageData: imageData)
+            // Update local post with server ID if needed
+            if let index = posts.firstIndex(where: { $0.id == post.id }) {
+                await MainActor.run {
+                    posts[index].id = createdPost.id
+                    saveData()
+                }
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = "Error syncing post to server: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func deletePostFromAPI(_ postId: UUID) async {
+        do {
+            try await apiService.deletePost(id: postId)
+        } catch {
+            await MainActor.run {
+                errorMessage = "Error deleting post from server: \(error.localizedDescription)"
+            }
+        }
     }
     
     // MARK: - Data Management

@@ -8,6 +8,9 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
+                    // API Status
+                    APIStatusView(petStore: petStore)
+                    
                     // Quick Stats
                     QuickStatsView()
                     
